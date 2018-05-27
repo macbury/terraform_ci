@@ -1,0 +1,15 @@
+[Unit]
+Description=Abstruse CI
+Requires=docker.service
+
+[Service]
+User={{ ansible_user }}
+StandardOutput=inherit
+StandardError=inherit
+ExecStartPre=/bin/bash -c "/usr/bin/docker rm -f ci; echo 'bumps'"
+ExecStart=/usr/bin/docker run --restart=always --name=ci -v /var/run/docker.sock:/var/run/docker.sock -v /ci:/root/abstruse -p 6500:6500 bleenco/abstruse
+ExecStop=/usr/bin/docker stop ci
+ExecReload=/usr/bin/docker restart ci
+
+[Install]
+WantedBy=multi-user.target

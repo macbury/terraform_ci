@@ -1,0 +1,8 @@
+.terraform/**/*
+*.tfvars
+*.tfstate.backup
+*.log
+*.retry
+.vagrant/**
+provisioning/vars.yaml
+inventory.ini

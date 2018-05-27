@@ -1,0 +1,4 @@
+domain:
+secret:
+jwt_secret:
+builds_concurrency: 2

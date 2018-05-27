@@ -1,0 +1,115 @@
+- name: EBS Stuff
+  hosts: aws
+  tasks:
+    - name: Create a ext4 for ebs
+      become: yes
+      filesystem:
+        fstype: ext4
+        dev: /dev/xvdh
+    - name: Mount EBS on ci
+      become: yes
+      mount:
+        fstype: ext4
+        path: /ci
+        src: /dev/xvdh
+        opts: rw,noauto
+        state: mounted
+- name: Install ci
+  hosts:
+    - all
+    - aws
+  handlers:
+    - name: nginx restart
+      become: yes
+      service:
+        name: nginx
+        state: restarted
+    - name: reload systemctl
+      become: yes
+      command: systemctl daemon-reload
+    - name: restart ci
+      become: yes
+      service:
+        name: ci
+        enabled: yes
+        state: restarted
+  tasks:
+    - name: Include vars of vars.yaml
+      include_vars:
+        file: vars.yaml
+    - name: Adding docker apt-key
+      become: yes
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: 'Adding repository'
+      become: yes
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }}  stable
+        state: present
+    - name: Update repositories cache and install "docker-ce" package
+      become: yes
+      apt:
+        name: docker-ce
+        update_cache: yes
+    - name: Install nginx
+      become: yes
+      apt:
+        name: nginx
+    - name: Adding user {{ ansible_user }} to group docker
+      become: yes
+      become_user: root
+      user:
+        name: '{{ ansible_user }}'
+        group: docker
+        append: yes
+    - name: 'Python pio'
+      become: yes
+      apt:
+        name: python-pip
+    - name: 'Docker py for ansible'
+      become: yes
+      pip:
+        name: docker-py
+        executable: pip
+    - name: Pull abstruse docker image
+      become: yes
+      docker_image:
+        name: bleenco/abstruse
+    - name: Ensure the default site is removed
+      become: yes
+      file:
+        path: /etc/nginx/sites-{{ item }}/default
+        state: absent
+      with_items:
+        - enabled
+        - available
+      notify:
+        - nginx restart
+    - name: Create nginx.conf
+      become: yes
+      template:
+        src: ./etc/nginx/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - nginx restart
+    - name: Creates config
+      become: yes
+      file:
+        path: /ci
+        state: directory
+    - name: Create ci.service
+      become: yes
+      template:
+        src: ./lib/systemd/system/ci.service.j2
+        dest: /lib/systemd/system/ci.service
+      notify:
+        - reload systemctl
+        - restart ci
+    - name: Setup ci config
+      become: yes
+      template:
+        src: ./ci/config.json.j2
+        dest: /ci/config.json
+      notify:
+        - restart ci

@@ -1,0 +1,23 @@
+{
+  "url": "{{ domain }}",
+  "secret": "{{ webhook_secret }}",
+  "jwtSecret": "{{ jwt_secret }}",
+  "port":6500,
+  "concurrency": {{ builds_concurrency }},
+  "idleTimeout":600,
+  "jobTimeout":3600,
+  "ssl":false,
+  "sslcert":null,
+  "sslkey":null,
+  "publicKey":"rsa.pub",
+  "privateKey":"rsa.key",
+  "requireLogin": true,
+  "demo":false,
+  "db":{
+    "client":"sqlite3",
+    "connection": {
+      "filename":"./abstruse.sqlite"
+    },
+    "useNullAsDefault":true
+  }
+}
