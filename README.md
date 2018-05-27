@@ -1,3 +1,5 @@
+Configure AWS instance to host https://github.com/bleenco/abstruse
+
 ## Bootstrap Mac OS X
 
 ```
