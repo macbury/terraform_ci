@@ -1,4 +1,4 @@
-domain:
-secret:
-jwt_secret:
+domain: test.local
+webhook_secret: test
+jwt_secret: test
 builds_concurrency: 2
